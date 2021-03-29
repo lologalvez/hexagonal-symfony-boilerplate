@@ -1,0 +1,29 @@
+version: '3.7'
+services:
+  dummy-api:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
+    container_name: dummy.api
+    volumes:
+      - .:/app:cached
+
+  dummy-nginx:
+    build:
+      dockerfile: docker/nginx/Dockerfile
+      context: .
+    container_name: dummy.nginx
+    depends_on:
+      - dummy-api
+    ports:
+      - "8088:80"
+    volumes:
+      - ".:/app"
+
+  dummy-mysql:
+    image: mysql:5.6
+    env_file:
+      - .env.dev
+    container_name: dummy.mysql
+    ports:
+      - 33066:3306

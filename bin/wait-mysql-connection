@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+source $(pwd)/.env
+
+maxtries=20
+until [ $maxtries -eq 0 ] || nc -z -w10 dummy.mysql 3306
+do
+  echo "Waiting for database connection..."
+
+  maxtries=$(( maxtries-1 ))
+
+  # wait for 1 seconds before check again
+  sleep 1s
+done
+
+if [ $maxtries -eq 0 ]; then
+  echo >&2 'error: unable to contact MySQL after 20 tries'
+  exit 1
+fi
+
+echo 'MySQL connection successful'
+exit 0
