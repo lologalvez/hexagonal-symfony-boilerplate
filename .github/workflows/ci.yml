@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Up containers and install dependencies
-        run: make up
+        run: make init
 
       - name: Run tests
         run: make test
