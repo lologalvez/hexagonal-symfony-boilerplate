@@ -3,7 +3,7 @@
 source $(pwd)/.env
 
 maxtries=20
-until [ $maxtries -eq 0 ] || nc -z -w10 dummy.mysql 3306
+until [ $maxtries -eq 0 ] || nc -z -w10 mysql 3306
 do
   echo "Waiting for database connection..."
 

@@ -19,12 +19,12 @@ class MysqlDummyRepository implements DummyRepository
 
     public function save(Dummy $dummy): void
     {
-        $this->connection->insert(
-            'dummies',
-            [
-                'id' => $dummy->id(),
-                'name' => $dummy->name()
-            ]
-        );
+        $queryBuilder = $this->connection->createQueryBuilder()
+            ->insert($_ENV['MYSQL_TABLE'])
+            ->values(['id' => '?', 'name' => '?'])
+            ->setParameter(0, $dummy->id())
+            ->setParameter(1, $dummy->name());
+
+        $queryBuilder->execute();
     }
 }

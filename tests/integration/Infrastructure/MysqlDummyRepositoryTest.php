@@ -6,6 +6,7 @@ use App\Domain\Model\Dummy\Details\Id\Id;
 use App\Domain\Model\Dummy\Details\Name\Name;
 use App\Infrastructure\MysqlDummyRepository;
 use App\Tests\unit\Domain\Model\Dummy\DummyBuilder;
+use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\DriverManager;
 use PHPUnit\Framework\TestCase;
 
@@ -14,18 +15,20 @@ class MysqlDummyRepositoryTest extends TestCase
     private const DUMMY_ID = 1;
     private const DUMMY_NAME = 'a dummy name';
 
-    private $connection;
-    private $mySqlDummyRepository;
+    private Connection $connection;
+    private MysqlDummyRepository $mySqlDummyRepository;
 
     protected function setUp(): void
     {
-        $this->connection = DriverManager::getConnection([
-            'dbname' => 'dummy_db',
-            'user' => 'root',
-            'password' => 'password',
-            'host' => 'dummy.mysql',
-            'driver' => 'pdo_mysql',
-        ]);
+        $this->connection = DriverManager::getConnection(
+            [
+                'dbname' => $_ENV['MYSQL_DATABASE'],
+                'user' => $_ENV['MYSQL_USER'],
+                'password' => $_ENV['MYSQL_PASSWORD'],
+                'host' => $_ENV['MYSQL_HOST'],
+                'driver' => 'pdo_mysql',
+            ]
+        );
 
         $this->mySqlDummyRepository = new MysqlDummyRepository($this->connection);
 
@@ -52,10 +55,13 @@ class MysqlDummyRepositoryTest extends TestCase
 
     private function dummyExists(string $dummyId): bool
     {
-        $dummyResult = $this->connection->executeQuery(
-            "SELECT name FROM dummies WHERE id=:id",
-            ['id' => $dummyId]
-        )->fetchOne();
+        $queryBuilder = $this->connection->createQueryBuilder()
+            ->select('name')
+            ->from($_ENV['MYSQL_TABLE'])
+            ->where('id = ?')
+            ->setParameter(0, $dummyId);
+
+        $dummyResult = $queryBuilder->execute()->fetchOne();
 
         if (empty($dummyResult)) {
             return false;
@@ -66,9 +72,11 @@ class MysqlDummyRepositoryTest extends TestCase
 
     private function clearDataBase(): void
     {
-        $this->connection->executeQuery(
-            "DELETE FROM dummies where id=:id",
-            ['id' => self::DUMMY_ID]
-        );
+        $queryBuilder = $this->connection->createQueryBuilder()
+            ->delete($_ENV['MYSQL_TABLE'])
+            ->where('id = ?')
+            ->setParameter(0, self::DUMMY_ID);
+
+        $queryBuilder->execute();
     }
 }
